@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import requests,json,sys,jieba,numpy
+import requests,json,sys,jieba,numpy,time
 from sklearn import feature_extraction
 from numpy import *
 from scipy.spatial import distance
@@ -103,82 +103,95 @@ def spider(sublist=[]):
     #temp_num=0
     #title_content=[]
     #遍历每个版块
-    for temp_num in range(3):
-    #######range(list_num):
-        n=sublist[temp_num]
-        BlockId=str(n['id'])
-        payload={'categoryId':BlockId,'pageSize':100,'orderBy':2}
-        try:
-            block_r=requests.get('http://wireless.tianya.cn/v/forumStand/list',params=payload)
-        except Exception as e:
-                blocknumber=0
-                while block_r.status_code!=200 and blocknumber<3:
-                #and blocknumber<3:
-                    block_r=requests.get('http://wireless.tianya.cn/v/forumStand/list',params=payload)
-                    blocknumber+=1
+    for temp_num in range(list_num):
         print('==========================block'+str(temp_num)+'=======================================')
+        '记文章数量'
+        jishu=0
+        nextTime=time.strftime('%Y-%m-%d %X',time.localtime())
+        while True:
+        #nextTime>'2015-03-22 10:35:05.0':
+    #######range(list_num):
+            n=sublist[temp_num]
+            BlockId=str(n['id'])
+            payload={'categoryId':BlockId,'pageSize':100,'orderBy':2,'nextTime':nextTime}
+            try:
+                block_r=requests.get('http://wireless.tianya.cn/v/forumStand/list',params=payload)
+            except Exception as e:
+                    blocknumber=0
+                    while block_r.status_code!=200 and blocknumber<3:
+                #and blocknumber<3:
+                        block_r=requests.get('http://wireless.tianya.cn/v/forumStand/list',params=payload)
+                        blocknumber+=1
         #获取每个版块的文章索引
-        rjson=dict(block_r.json())
-        if rjson['success']!=1:
-            temp_num-=1
-            continue
-        passage_list=rjson['data']['list']
+            rjson=dict(block_r.json())
+            if rjson['success']!=1:
+                temp_num-=1
+                continue
+            passage_list=rjson['data']['list']
+            nextTime=passage_list[-1]['replyTime']
         #print(len(passage_list))
         #block_title_content=[]
         #遍历板块下的每篇文章
-        for listCount in range(4):
+            for listCount in range(len(passage_list)):
         ######in range(len(passage_list)):
-            noteId=passage_list[listCount]['noteId']
-            title=passage_list[listCount]['title']
-            forumStand='forumStand/list/'+str(BlockId)
-            payload={'categoryId':BlockId,'noteId':noteId,'pageNo':1,'sourceAddress':forumStand}
-            try:
-                r=requests.get('http://wireless.tianya.cn/v/forumStand/content',params=payload,timeout=5)
-            except Exception as e:
-                continue
-            rjson=dict(r.json())
-            #print(rjson)
-            if rjson['message']=='帖子不存在'or rjson['success']!=1:
-                continue
-            comment_data=rjson['data']
-            comment_list=comment_data['list']
-            category_name=comment_data['categoryName']
-            #writer=comment_data['authorId']
-            passage_title=comment_data['title']
-            con=''
-            #遍历文章内容
-            for replyCount in range(len(comment_list)):
-                tempc=dict(comment_list[replyCount])
+                noteId=passage_list[listCount]['noteId']
+                title=passage_list[listCount]['title']
+                forumStand='forumStand/list/'+str(BlockId)
+                payload={'categoryId':BlockId,'noteId':noteId,'pageNo':1,'sourceAddress':forumStand}
                 try:
-                    tempcon=tempc['con']
-                    if tempcon!='已删除' :
-                        con+=tempcon
-                except Exception:
+                    r=requests.get('http://wireless.tianya.cn/v/forumStand/content',params=payload,timeout=5)
+                except Exception as e:
                     continue
-            cutcon,corcut=cutword(string=con)
-            print(corcut)
-            print('======================'+str(listCount)+'===================')
-            wholeList+=cutcon
-            corpus.append(corcut)
-            #block_title_content.append({'categoryName':category_name,'passage title':passage_title,'content':con})
+                rjson=dict(r.json())
+                #print(rjson)
+                if rjson['message']=='帖子不存在'or rjson['success']!=1:
+                    continue
+                comment_data=rjson['data']
+                comment_list=comment_data['list']
+                category_name=comment_data['categoryName']
+                #writer=comment_data['authorId']
+                passage_title=comment_data['title']
+                con=''
+            #遍历文章内容
+                for replyCount in range(len(comment_list)):
+                    tempc=dict(comment_list[replyCount])
+                    try:
+                        tempcon=tempc['con']
+                        if tempcon!='已删除' :
+                            con+=tempcon
+                    except Exception:
+                        continue
+                cutcon,corcut=cutword(string=con)
+                print(corcut)
+                print('======================'+str(jishu)+'===================')
+                jishu+=1
+                wholeList+=cutcon
+                corpus.append(corcut)
+                #block_title_content.append({'categoryName':category_name,'passage title':passage_title,'content':con})
             
             #存储部分
-            #mongoOp.insert(block_title_content)
+                #mongoOp.insert(block_title_content)
 def getTopics():
     global corpus
     #print(corpus)
     dictionary=corpora.Dictionary(corpus)
-    dictionary.save_as_text('D:/tianya/tianyaproject/tmp/tianya1.txt')
+    dictionary.save_as_text('D:/tianya/tianyaproject/tmp/tianya.txt')
     thisCorpus=[dictionary.doc2bow(text) for text in corpus]
-    print(thisCorpus)
-    corpora.MmCorpus.serialize('D:/tianya/tianyaproject/tmp/tianya1.mm', thisCorpus)
-    #下面这部分在处理大规模数据的时候报错
-    model=models.ldamodel.LdaModel(corpus=thisCorpus,num_topics=100,id2word=dictionary,alpha=1)
+    #print(thisCorpus)
+    corpora.MmCorpus.serialize('D:/tianya/tianyaproject/tmp/tianya.mm',thisCorpus)
+    #下面这部分在处理大规模数据的时候报错（已解决）
+    model=models.ldamodel.LdaModel(corpus=thisCorpus,num_topics=100,id2word=dictionary)
     #topics=[model[c] for c in thisCorpus]
     return model,thisCorpus
 def main():
     global wholeList
     get12(string=Toplevel_12['1'])
+    get12(string=Toplevel_12['2'])
+    get3567(string=Toplevel_3567['3'])
+    get4()
+    get3567(string=Toplevel_3567['5'])
+    get3567(string=Toplevel_3567['6'])
+    get3567(string=Toplevel_3567['7'])
     #weight,word=tfidf(wholeList)
     model,mycorpus=getTopics()
     topics=[model[c] for c in mycorpus]
@@ -189,16 +202,3 @@ def main():
     words=model.print_topics(num_topics=50)
     for f in words:
         print(f+'\n')
-
-    
-
-
-        
-    
-        
-    
-    
-    
-    
-    
-    

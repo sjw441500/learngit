@@ -1,0 +1,167 @@
+{% extends "uif/layout.html" %}
+
+{% block title%}UIF | Complement{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>Complement</h1> 
+</div>
+
+<div class="row page-block border-bottom-block">
+    <div class="col-md-8">
+        <h3>Select Sample User</h3>
+        <p>To protect users' rights, we only provide few number of sample
+            users and never leak the username or other info rather than tweets 
+            and status of each peer.</p>
+    </div>
+    <div class="col-md-4">
+        <h3></h3>
+        <form role="form" method="POST" action="/uif/complement" class="form"
+            style="float:right">
+            <div class="form-group">
+                <select class="form-control" style="width:250px" 
+                    name="user_id">
+                    <option value="0">Please Select User</option>
+                    <option value="1">User 1.</option>
+                    <option value="2">User 2.</option>
+                    <option value="3">User 3.</option>
+                </select>
+            </div>
+            <div class="form-group form-group-st">
+                <input type="text" value="1" name="tw_page_no" class="hide-btn"/>
+                <input type="text" value="1" name="fb_page_no" class="hide-btn"/>
+                <input type="text" value="1" name="mc_page_no" class="hide-btn"/>
+                <input type="text" value="0" name="mode" class="hide-btn"/>
+                <button type="submit" class="btn btn-primary input-long">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% if session.method == "GET" %}
+<div class="row page-block">
+    <h3></h3>
+    <div class="well">
+        <p>None Data. Please select user first.</p>
+    </div>
+</div>
+{% endif %}
+{% if session.method == "POST" %}
+<div class="row page-block">
+    <div class="col-md-8"><h3>Information</h3></div>
+    <div class="col-md-4">
+        <h3></h3>
+        <form role="form" method="POST" action="/uif/complement" class="form"
+            style="float:right">
+            <div class="form-group">
+            <input type="text" value="" name="mode" class="hide-btn" 
+                id="text-mode"/>
+            <div class="btn-group" style="width:250px">
+                <button type="submit" class="btn btn-primary" style="width:83px"
+                    id="mc-btn">Match</button>
+                <button type="submit" class="btn btn-primary" style="width:84px"
+                    id="tw-btn">Twitter</button>
+                <button type="submit" class="btn btn-primary" style="width:83px"
+                    id="fb-btn">Facebook</button>
+            </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="page-block row">
+    <div class="col-md-12 well" style="margin-top:-10px">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th width="15%">
+                    {% if   session['mode'] == '0'%} Match Entities
+                    {% elif session['mode'] == '1'%} Twitter Entities
+                    {% elif session['mode'] == '2'%} Facebook Entities
+                    {% endif %}
+                </th>
+                <th width="20%"> Sources </th>
+                <th> Relevance Words</th>
+            </tr>
+        </thead>
+        <tbody id="data_screen" valign="middle">
+        {% for entity in data['entities'] %}
+            <tr>
+                <th>{{ entity['word'] }}</th>
+                <td>
+                    {% if session['mode'] == '0' or session['mode'] == '1' %}
+                    <font class="blue-mark">twitter</font>
+                    {% endif %}
+                    {% if session['mode'] == '0' or session['mode'] == '2' %}
+                    <font class="red-mark">facebook</font>
+                    {% endif %}
+                </td>
+                <td>
+                    {% for rele in entity['relevance_s'] %}
+                    {% if rele['mode']|length == 2%}
+                    <font class="green-mark">{{rele['word']}}</font>
+                    {% elif rele['mode'] == ['twitter'] %}
+                    <font class="blue-mark">{{rele['word']}}</font>
+                    {% elif rele['mode'] == ['facebook'] %}
+                    <font class="red-mark">{{rele['word']}}</font>
+                    {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <ul class="pager" style="margin:10 0 0 0 ">
+        <li class="previous"><a id="prev">Previous</a></li>
+        <li class="next"><a id="next">Next</a></li>
+    </ul>
+    </div>
+</div>
+<script>
+    var $SCRIPT_ROOT = "{{ session['host'] }}"
+    function refresh_table(data){
+        $("#data_screen").empty()
+        inner = ""
+        for (i=0; i < data.length; i++){
+            inner += "<tr><th>"+data[i].word+"</th>"
+            if(data[i].source_count.length == 2){
+                inner += "<td> <font class='blue-mark'>twitter</font>"
+                inner += " <font class='red-mark'>facebook</font></td>"
+            }
+            else if(data[i].source_count == "twitter"){
+                inner += "<td><font class='blue-mark'>twitter</font></td>"}
+            else if(data[i].source_count == "facebook"){
+                inner += "<td><font class='red-mark'>facebook</font></td>"}
+            inner += "<td>"
+            for(j=0; j<data[i]['relevance_s'].length; j++){
+                rele = data[i]['relevance_s'][j]
+                if(rele['mode'].length == 2)
+                    inner+=" <font class='green-mark'>"+rele['word']+"</font>"
+                else if(rele['mode'] == 'twitter')
+                    inner+=" <font class='blue-mark'>"+rele['word']+"</font>"
+                else if(rele['mode'] == 'facebook')
+                    inner+=" <font class='red-mark'>"+rele['word']+"</font>"
+            }
+            inner += "</td></tr>"
+        }
+        $("#data_screen").html(inner)
+    }
+    $(document).ready(function(){
+        i = {{session.user_id}}
+        $("select[name='user_id'] option[value='"+i+"']").attr('selected', 'selected')
+        $("#mc-btn").click(function(){$("#text-mode").val("0")})
+        $("#tw-btn").click(function(){$("#text-mode").val("1")})
+        $("#fb-btn").click(function(){$("#text-mode").val("2")})
+
+        $("#next").click(function(){
+            $.getJSON($SCRIPT_ROOT+"uif/complement/change_page",
+            {'page':"next"},function(data){refresh_table(data.entities)})})
+        $("#prev").click(function(){
+            $.getJSON($SCRIPT_ROOT+"uif/complement/change_page",
+            {'page':"prev"},function(data){refresh_table(data.entities)})})
+    })
+</script>
+{% endif %}
+
+{% endblock %}

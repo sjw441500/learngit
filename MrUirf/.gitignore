@@ -1,0 +1,10 @@
+*.pyc
+*.nodes
+*.matrix
+.DS_Store
+*.jar
+*.tagger
+*.dat
+*.so
+*.account
+*.json

@@ -1,0 +1,55 @@
+{% extends "uif/layout.html" %}
+
+{% block title %}UIF | Home{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>User Infomation Fusion</h1>
+</div>
+
+<div class="row page-block">
+    <div class="col-md-9">
+        <h3>Introduction</h3>
+        <p>Uif system aims to fuse user's infomation, which scattered in 
+            several social media. In other words, to complement single user's 
+            different information from multi social media, resulting complete 
+            user information.</p>
+        <h3>Data Source</h3>
+        <p>In this period, we determined to use Twitter and Facebook as 
+            sample social media, to fusing information of users who use these 
+            two SNS mutually. </p>
+        <h3>Process</h3>
+        <p><ol> <li>text</li>
+                <li>tokenization</li>
+                <li>pos tagging</li>
+                <li>entity extraction</li>
+                <li>relevance word extraction</li>
+                <li>complementing</li>
+        </ol></p>
+        <h3>Result</h3>
+        <p>The information will be presented as entities 
+            the users mentioned and the relevance words of those entities.</p>
+        <div class="well">
+            <p>
+                <span class="glyphicon glyphicon-file"></span> 
+                peer.json</br>
+                {"username":username, </br>
+                &nbsp;"texts":[{</br>
+                &emsp;&emsp;&emsp;&emsp; "content":text1,</br>
+                &emsp;&emsp;&emsp;&emsp; "entity":</br>
+                &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;[{"word":entity1, 
+                "relevance":[word1,word2]}, </br>
+                &emsp;&emsp;&emsp;&emsp;&emsp;&emsp; {"word":entity2,
+                "relevance":[word1]}]</br>
+                &emsp;&emsp;&emsp;&emsp;}, {</br>
+                &emsp;&emsp;&emsp;&emsp; "content":text2, </br>
+                &emsp;&emsp;&emsp;&emsp; "entity":["word":entity,
+                "relevance":[]]</br>
+                &emsp;&emsp;&emsp;&emsp;}, </br>
+                &emsp;&emsp;&emsp;&emsp;...]</br>
+                }
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

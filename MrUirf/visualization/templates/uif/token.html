@@ -1,0 +1,147 @@
+{% extends "uif/layout.html" %}
+
+{% block title%}UIF | Token{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>Token</h1>
+</div>
+
+<div class="row page-block border-bottom-block">
+    <div class="col-md-8">
+        <h3>Select Sample User</h3>
+        <p>To protect users' rights, we only provide few number of sample
+            users and never leak the username or other info rather than tweets 
+            and status of each peer.</p>
+    </div>
+    <div class="col-md-4">
+        <h3></h3>
+        <form role="form" method="POST" action="/uif/token" class="form"
+            style="float:right">
+            <div class="form-group">
+                <select class="form-control" style="width:250px" 
+                    name="user_id">
+                    <option value="0">Please Select User</option>
+                    <option value="1">User 1.</option>
+                    <option value="2">User 2.</option>
+                    <option value="3">User 3.</option>
+                </select>
+            </div>
+            <div class="form-group form-group-st">
+                <input type="text" value="1" name="tw_page_no" class="hide-btn"/>
+                <input type="text" value="1" name="fb_page_no" class="hide-btn"/>
+                <input type="text" value="twitter" name="source" class="hide-btn"/>
+                <button type="submit" class="btn btn-primary input-long">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% if session.method == "GET" %}
+<div class="row page-block">
+    <h3></h3>
+    <div class="well">
+        <p>None Data. Please select user first.</p>
+    </div>
+</div>
+{% endif %}
+{% if session.method == "POST" %}
+<div class="row page-block">
+    <div class="col-md-8"><h3>Splited Tokens</h3></div>
+    <div class="col-md-4">
+        <h3></h3>
+        <form role="form" method="POST" action="/uif/token" class="form"
+            style="float:right">
+            <div class="form-group">
+            <input type="text" value="" name="source" class="hide-btn" 
+                id="text-source"/>
+            <div class="btn-group" style="width:250px">
+                <button type="submit" class="btn btn-primary input-mid"
+                    id="tw-btn">Twitter</button>
+                <button type="submit" class="btn btn-primary input-mid"
+                    id="fb-btn">Facebook</button>
+            </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="page-block row">
+    <div class="col-md-12 well" style="margin-top:-10px">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    {% if session['source'] == 'twitter'%}Tweet Tokens
+                    {% elif session['source'] == 'facebook' %}Status Tokens
+                    {% endif %}
+                </th>
+            </tr>
+        </thead>
+        <tbody id="data_screen">
+        {% for text in data['texts'] %}
+            <tr class="text-tokens">
+                <td>
+                    <textarea>{{text['content']}}</textarea>
+                    {% for word in text['token_lower'] %}
+                    {% if word == '.' or word == ',' %}{{word}}
+                    {% else %}<font class="blue-mark">{{ word }}</font>
+                    {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <ul class="pager" style="margin:10 0 0 0 ">
+        <li class="previous"><a id="prev">Previous</a></li>
+        <li class="next"><a id="next">Next</a></li>
+    </ul>
+    </div>
+</div>
+<script>
+    var $SCRIPT_ROOT = "{{ session['host'] }}"
+    function refresh_table(data){
+        $("#data_screen").empty()
+        inner = ""
+        for (i=0; i < data.length; i++){
+            token_lower = data[i].token_lower
+            content     = data[i].content
+            inner += "<tr class='text-tokens'><td>"
+            inner += "<textarea>"+content+"</textarea>"
+            for (j=0; j < token_lower.length; j++){
+                token = token_lower[j]
+                if(token=="," || token == '.') inner += " "+token+" "
+                else inner += " <font class='blue-mark'>"+token+"</font> "
+            }
+            inner += "</td></tr>"
+        }
+        $("#data_screen").html(inner)
+        $('.text-tokens').hover(function(){
+            raw_text = $(this).find('textarea').val()
+            $(this).popover({title:"Raw Text",content:raw_text,placement:"top"})
+        })
+    }
+    $(document).ready(function(){
+        i = {{session.user_id}}
+        $("select[name='user_id'] option[value='"+i+"']").attr('selected', 'selected')
+        $("#fb-btn").click(function(){$("#text-source").val("facebook")})
+        $("#tw-btn").click(function(){$("#text-source").val("twitter")})
+
+        $("#next").click(function(){
+                    $.getJSON($SCRIPT_ROOT+"uif/token/change_page"
+                    ,{'page':"next"},function(data){refresh_table(data.texts)})})
+        $("#prev").click(function(){
+                    $.getJSON($SCRIPT_ROOT+"uif/token/change_page"
+                    ,{'page':"prev"},function(data){refresh_table(data.texts)})})
+        $('.text-tokens').hover(function(){
+            raw_text = $(this).find('textarea').val()
+            $(this).popover({title:"Raw Text",content:raw_text,placement:"top"})
+            $(".popover").css('width', '500px')
+        })
+    })
+</script>
+{% endif %}
+
+{% endblock %}

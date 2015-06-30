@@ -1,0 +1,42 @@
+
+h1, h2, h3, h4, h5, h6{
+    color:#23527c;
+}
+
+p, ol li{
+    color:#23527c;
+    font-size:16px;
+}
+
+.layout-header{
+    background:-webkit-linear-gradient(top, #FF8C00, #FF6347)
+}
+
+.layout-footer span{
+    height:200px;
+}
+
+.sidebar{
+    position:fixed;
+    height:100%;
+}
+
+.background{
+    background-color:#337ab7;
+    opacity:.20;
+    position:fixed;
+}
+
+.input-long{width:250px}
+.input-mid {width:125px}
+.hide-btn  {display:none;visibility: hidden;}
+.page-block{margin: -20px 0 20px;}
+.border-bottom-block{border-bottom: 1px solid #eee}
+tr.text-tokens td textarea{display:none; visibility: hidden;}
+.popover{min-width:800px}
+.blue-mark{padding:2px 4px;font-size:90%;background-color:#D3E9F8;border-radius:4px}
+.red-mark{padding:2px 4px;font-size:90%;background-color:#FFCACA;border-radius:4px}
+.yellow-mark{padding:2px 4px;font-size:90%;background-color:#FFFFAD;border-radius:4px}
+.green-mark{padding:2px 4px;font-size:90%;background-color:#CAFFCA;border-radius:4px}
+.purple-mark{padding:2px 4px;font-size:90%;background-color:#E3D1F6;border-radius:4px}
+.grey-mark{padding:2px 4px;font-size:90%;background-color:#D9D9D9;border-radius:4px}

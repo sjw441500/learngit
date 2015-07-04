@@ -234,9 +234,13 @@ def worker(login, depth, requester, nodes, links, tasks, lock, indices):
 
 def start(login, depth=2):
 
-    nodes = multiprocessing.Manager().dict()
+    manager = multiprocessing.Manager()
+    
+    nodes = manager.dict()
+    
     tasks = multiprocessing.Queue()
-    links = multiprocessing.Manager().list()
+    
+    links = manager.list()
 
     lock = multiprocessing.Lock()
 
